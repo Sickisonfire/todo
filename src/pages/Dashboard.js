@@ -1,14 +1,15 @@
-import { useState, useEffect, useContext } from 'react'
-import { ListContext } from '../contexts'
+import { useState, useEffect } from 'react'
+
 /** @jsxImportSource @emotion/react */
-import 'twin.macro'
+import tw from 'twin.macro'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 
 export const Dashboard = () => {
   const [createListState, setCreateListState] = useState(false)
   const [titleInput, setTitleInput] = useState('')
-
-  const { addList, updateList, deleteList, lists, getLists, loading } = useContext(ListContext)
+  const [lists, setLists] = useState([])
+  const [todos, setTodos] = useState([])
+  const [loading, setLoading] = useState(true)
 
   const handleItemInputChange = (e) => {
     const { value } = e.target
@@ -22,55 +23,64 @@ export const Dashboard = () => {
 
   const handleAddList = (e) => {
     e.preventDefault()
-    const newList = { title: titleInput, todos: [] }
+    const newList = { title: titleInput, id: Date.now() }
 
-    addList(newList)
+    setLists([...lists, newList])
 
     setCreateListState(false)
     setTitleInput('')
   }
 
   const handleRemoveList = (id) => {
-    deleteList(id)
+    const newListState = lists.filter((list) => list.id !== id)
+    const newTodoState = todos.filter((todo) => todo.listId !== id)
+    setLists(newListState)
+    setTodos(newTodoState)
   }
 
-  const handleAddItemToList = (listId, todo) => {
-    const newList = lists.filter((list) => list.id === listId)
-    let todos = newList[0].todos
-    todos = [...todos, todo]
-    newList[0].todos = todos
-
-    updateList(newList[0])
+  const handleAddItemToList = (todo) => {
+    setTodos([...todos, todo])
   }
 
-  const handleRemoveItemFromList = (listId, todoId) => {
-    const newList = lists.filter((list) => list.id === listId)
-    const todos = newList[0].todos.filter((todo) => todo.id !== todoId)
-    newList[0].todos = todos
-
-    updateList(newList[0])
+  const handleRemoveItemFromList = (todoId) => {
+    const newTodoState = todos.filter((todo) => todo.id !== todoId)
+    setTodos(newTodoState)
   }
+
+  const handleMoveTodo = (newTodos) => {
+    setTodos([...newTodos])
+  }
+
   useEffect(() => {
-    getLists()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+    if (loading) {
+      if (localStorage.getItem('lists') !== null) {
+        setLists(JSON.parse(localStorage.getItem('lists')))
+        setTodos(JSON.parse(localStorage.getItem('todos')))
+      }
+      setLoading(false)
+    }
+    console.log('test')
+    localStorage.setItem('lists', JSON.stringify(lists))
+    localStorage.setItem('todos', JSON.stringify(todos))
+  }, [lists, todos, loading])
 
   return (
     <div tw='right-0 left-0 bottom-0 top-16 p-4 absolute sm:flex items-start '>
-      {!loading &&
+      {lists &&
         lists.map((list) => (
           <List
             key={list.id}
             id={list.id}
             title={list.title}
-            todos={list.todos}
+            todos={todos}
             removeList={handleRemoveList}
             removeItemFromList={handleRemoveItemFromList}
             addItemToList={handleAddItemToList}
+            moveTodos={handleMoveTodo}
           />
         ))}
       {createListState ? (
-        <div tw='w-72 bg-white  text-sm text-gray-700 p-2  rounded-lg text-left'>
+        <form tw='w-72 bg-white  text-sm text-gray-700 p-2  rounded-lg text-left'>
           <input
             onChange={handleItemInputChange}
             tw='p-2 bg-gray-500 bg-opacity-10 rounded shadow text-sm mb-2 w-full'
@@ -92,7 +102,7 @@ export const Dashboard = () => {
               <FontAwesomeIcon icon='times' tw='text-gray-600' />
             </button>
           </div>
-        </div>
+        </form>
       ) : (
         <button
           onClick={handleClickAddList}
@@ -105,10 +115,11 @@ export const Dashboard = () => {
   )
 }
 
-const List = ({ title, id, removeList, addItemToList, removeItemFromList, todos }) => {
+const List = ({ title, id, removeList, addItemToList, removeItemFromList, todos, moveTodos }) => {
   const [createItemState, setCreateItemState] = useState(false)
   const [titleInput, setTitleInput] = useState('')
   const [hoverState, setHoverState] = useState(false)
+  const [dragHoveredState, setDragHoveredState] = useState(false)
 
   const handleItemInputChange = (e) => {
     const { value } = e.target
@@ -122,17 +133,38 @@ const List = ({ title, id, removeList, addItemToList, removeItemFromList, todos 
 
   const handleAddItem = (e) => {
     e.preventDefault()
-    const newItem = { title: titleInput, id: Date.now() }
-    addItemToList(id, newItem)
+    const newItem = { title: titleInput, id: Date.now(), listId: id }
+    addItemToList(newItem)
     setCreateItemState(false)
     setTitleInput('')
   }
 
+  const onDragOverHandler = (e) => {
+    if (e.dataTransfer && e.dataTransfer.types[0] === 'text/plain') {
+      e.preventDefault()
+      setDragHoveredState(true)
+    }
+  }
+
+  const onDropHandler = (e) => {
+    const todoId = e.dataTransfer.getData('text/plain')
+    const newTodoState = todos
+    const index = newTodoState.findIndex((todo) => todo.id === +todoId)
+    newTodoState[index].listId = id
+    moveTodos(newTodoState)
+    setDragHoveredState(false)
+  }
   return (
     <div
+      onDragLeave={() => setDragHoveredState(false)}
+      onDragOver={(e) => onDragOverHandler(e)}
+      onDrop={(e) => onDropHandler(e)}
       onMouseEnter={() => setHoverState(true)}
       onMouseLeave={() => setHoverState(false)}
-      tw='mb-4 p-2 bg-white  sm:w-72 rounded-lg mr-2 max-h-full flex flex-col relative w-full'
+      css={[
+        tw`mb-4 p-2 bg-white  sm:w-72 rounded-lg mr-2 max-h-full flex flex-col relative w-full`,
+        dragHoveredState && tw`bg-gray-100`,
+      ]}
     >
       {hoverState && (
         <button
@@ -145,20 +177,22 @@ const List = ({ title, id, removeList, addItemToList, removeItemFromList, todos 
       <h2 tw='text-sm font-bold mb-2 mx-2 text-gray-700'>{title}</h2>
       <div tw='overflow-y-auto overflow-x-hidden'>
         {todos &&
-          todos.map((item) => (
-            <ListItem
-              id={item.id}
-              key={item.id}
-              title={item.title}
-              removeItem={(itemId) => removeItemFromList(id, itemId)}
-            />
-          ))}
+          todos
+            .filter((todo) => id === todo.listId)
+            .map((item) => (
+              <ListItem
+                id={item.id}
+                key={item.id}
+                title={item.title}
+                removeItem={(itemId) => removeItemFromList(itemId)}
+              />
+            ))}
       </div>
       {createItemState ? (
-        <>
+        <form tw='w-full'>
           <input
             onChange={handleItemInputChange}
-            tw='p-2 bg-gray-500 bg-opacity-10 rounded shadow text-sm mb-2 '
+            tw='p-2 bg-gray-500 bg-opacity-10 rounded shadow text-sm mb-2 w-full'
             type='text'
             placeholder='input task here..'
             value={titleInput}
@@ -177,7 +211,7 @@ const List = ({ title, id, removeList, addItemToList, removeItemFromList, todos 
               <FontAwesomeIcon icon='times' tw='text-gray-600' />
             </button>
           </div>
-        </>
+        </form>
       ) : (
         <button
           onClick={(e) => handleClick(e)}
@@ -193,8 +227,16 @@ const List = ({ title, id, removeList, addItemToList, removeItemFromList, todos 
 
 const ListItem = ({ title, removeItem, id }) => {
   const [hoverState, setHoverState] = useState(false)
+
+  const handleDragStart = (e) => {
+    e.dataTransfer.setData('text/plain', id)
+    e.dataTransfer.effectAllowed = 'move'
+  }
+
   return (
     <div
+      draggable
+      onDragStart={(e) => handleDragStart(e)}
       tw='w-full text-left mb-2 relative'
       onMouseEnter={() => setHoverState(true)}
       onMouseLeave={() => setHoverState(false)}

@@ -1,8 +1,7 @@
-import { useState, useContext, useEffect } from 'react'
+import { useState } from 'react'
 import { Validators } from '../lib/utilities/Validator'
 import { Helmet } from 'react-helmet'
 import { Link, useHistory } from 'react-router-dom'
-import { UserContext, AlertContext } from '../contexts'
 
 import { InputField, Checkbox } from '../components'
 
@@ -18,8 +17,6 @@ export const Register = () => {
     tosCheck: false,
     country: '',
   })
-  const { register, isAuthenticated } = useContext(UserContext)
-  const { setAlert } = useContext(AlertContext)
 
   const history = useHistory()
 
@@ -27,24 +24,13 @@ export const Register = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault()
-    if (password !== confirmPassword) {
-      setAlert('Passwords do not match', 'ERROR')
-    } else {
-      register(formData.name, formData.email, formData.password)
-    }
+    alert('this is only a frontend demo.')
+    history.push('/dashboard')
   }
 
   const handleChange = (key) => (value) => {
     setformData({ ...formData, [key]: value })
   }
-
-  useEffect(() => {
-    if (isAuthenticated) {
-      setAlert(`Welcome ${name}`, 'SUCCESS')
-      history.push('/dashboard')
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isAuthenticated, history])
 
   return (
     <>

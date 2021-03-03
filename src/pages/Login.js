@@ -1,9 +1,8 @@
-import { useState, useContext, useEffect } from 'react'
+import { useState } from 'react'
 import { Validators } from '../lib/utilities/Validator'
 import { Helmet } from 'react-helmet'
 import { Link, useHistory } from 'react-router-dom'
 import { InputField } from '../components'
-import { UserContext, AlertContext } from '../contexts'
 
 /** @jsxImportSource @emotion/react */
 import tw from 'twin.macro'
@@ -14,10 +13,6 @@ export const Login = () => {
     password: '',
   })
 
-  const { login, isAuthenticated, user } = useContext(UserContext)
-
-  const { setAlert } = useContext(AlertContext)
-
   const { email, password } = formData
   const history = useHistory()
 
@@ -27,16 +22,18 @@ export const Login = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault()
-    login(email, password)
+    // login(email, password)
+    alert('This is only a frontend demo.')
+    history.push('/dashboard')
   }
 
-  useEffect(() => {
-    if (isAuthenticated) {
-      setAlert(`Welcome back ${user.username}`, 'SUCCESS')
-      history.push('/dashboard')
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isAuthenticated, history, setAlert])
+  // useEffect(() => {
+  //   if (isAuthenticated) {
+  //     setAlert(`Welcome back ${user.username}`, 'SUCCESS')
+  //     history.push('/dashboard')
+  //   }
+  //   // eslint-disable-next-line react-hooks/exhaustive-deps
+  // }, [isAuthenticated, history, setAlert])
 
   return (
     <>

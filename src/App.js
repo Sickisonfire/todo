@@ -1,6 +1,6 @@
 import { lazy, Suspense } from 'react'
 import { BrowserRouter as Router, Route, Switch } from 'react-router-dom'
-import { Navbar, Alert, PrivateRoute } from './components'
+import { Navbar, Alert } from './components'
 import { AlertState, UserState, ListState } from './contexts'
 
 /** @jsxImportSource @emotion/react */
@@ -62,7 +62,7 @@ export const App = () => {
               <Alert />
               <Suspense fallback={<div>loading..</div>}>
                 <Switch>
-                  <PrivateRoute exact path='/dashboard' component={Dashboard} />
+                  <Route exact path='/dashboard' component={Dashboard} />
                   <Route exact path='/register' component={Register} />
                   <Route exact path='/login' component={Login} />
                   <Route exact path='/about' component={About} />
