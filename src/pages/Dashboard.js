@@ -59,7 +59,7 @@ export const Dashboard = () => {
       }
       setLoading(false)
     }
-    console.log('test')
+
     localStorage.setItem('lists', JSON.stringify(lists))
     localStorage.setItem('todos', JSON.stringify(todos))
   }, [lists, todos, loading])
