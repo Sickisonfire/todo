@@ -1,0 +1,38 @@
+[
+  {
+    "title": "list1",
+    "id": 1,
+    "items": [
+      {
+        "title": "item1",
+        "id": 1
+      },
+      {
+        "title": "item2",
+        "id": 2
+      },
+      {
+        "title": "item3",
+        "id": 3
+      }
+    ]
+  },
+  {
+    "title": "list2",
+    "id": 2,
+    "items": [
+      {
+        "title": "item4",
+        "id": 4
+      },
+      {
+        "title": "item5",
+        "id": 5
+      },
+      {
+        "title": "item6",
+        "id": 6
+      }
+    ]
+  }
+]
